@@ -1,0 +1,10 @@
+{
+  "name": "trustcheck-mobile",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "test:e2e:auth": "node ./e2e-auth/run-auth-e2e.js",
+    "lint": "node -e \"console.log('lint placeholder mobile')\"",
+    "build": "node -e \"console.log('build placeholder mobile')\""
+  }
+}

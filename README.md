@@ -1,6 +1,9 @@
-﻿# TrustCheck Mobile
+# TrustCheck Mobile
 
 Aplicativo mobile (React Native + Expo) para os fluxos de consumidor e empresa no V1.
+
+## Estado real atual
+- TC3-QA-08 concluida: base de cenarios E2E P0 para jornada mobile.
 
 ## Escopo V1 - Consumidor
 - Onboarding, cadastro e login.
@@ -16,15 +19,8 @@ Aplicativo mobile (React Native + Expo) para os fluxos de consumidor e empresa n
 - Negociacao por proposta/contraproposta.
 - Metricas/reputacao e configuracoes de conta.
 
-## Fora de escopo V1
-- App web de consumidor.
-- Pagamentos e planos premium.
-- Videochamada para negociacao.
-
-## Fronteiras
-- Consome contratos e status providos pelo `Api`.
-- Recebe notificacoes por canais definidos em `Integrations`.
-- Segue governanca de moderacao definida por `Admin-Web` e `Docs`.
+## QA rapido
+- Executar: `npm run test:e2e:auth`
 
 ## Fonte de verdade funcional
 - https://github.com/TrustCheckApp/Docs
