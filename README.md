@@ -4,7 +4,7 @@ Aplicativo mobile (React Native + Expo) para os fluxos de consumidor e empresa n
 
 ## Estado real atual
 - Base Expo Router inicializada com modulos, tema e cliente HTTP.
-- TC2 em andamento: jornadas AUTH, CASOS e TRUST.
+- TC2 concluida para MVP: AUTH, TRUST e CASOS com feedback padrao.`n- TC2-ADM-09 concluida: UX foundation com tokens e guideline de feedback.
 
 ## Execucao local
 - `npm install`
@@ -17,3 +17,4 @@ Aplicativo mobile (React Native + Expo) para os fluxos de consumidor e empresa n
 - https://github.com/TrustCheckApp/Docs
 - `Docs/docs/02-catalogo-telas.md`
 - `Docs/docs/03-planejamento-sprints.md`
+
