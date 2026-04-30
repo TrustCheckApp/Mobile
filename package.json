@@ -1,10 +1,24 @@
 {
   "name": "trustcheck-mobile",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
+  "main": "expo-router/entry",
   "scripts": {
-    "test:e2e:auth": "node ./e2e-auth/run-auth-e2e.js",
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
     "lint": "node -e \"console.log('lint placeholder mobile')\"",
-    "build": "node -e \"console.log('build placeholder mobile')\""
+    "build": "node -e \"console.log('build placeholder mobile')\"",
+    "test:e2e:auth": "node ./e2e-auth/run-auth-e2e.js"
+  },
+  "dependencies": {
+    "expo": "~51.0.28",
+    "expo-router": "~3.5.23",
+    "react": "18.2.0",
+    "react-native": "0.74.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
   }
 }
