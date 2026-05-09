@@ -49,6 +49,16 @@ axiosClient.interceptors.response.use(
         statusCode: error.response.status,
         details: error.response.data,
       };
+      
+      // Redirect to login on 401/403
+      if (error.response.status === 401 || error.response.status === 403) {
+        // In a real app, this would trigger navigation to login
+        // For now, we'll log the intent
+        console.warn('Authentication required - redirecting to login');
+        // TODO: Implement navigation to login screen
+        // router.push('/login');
+      }
+      
       return Promise.reject(apiError);
     }
     
