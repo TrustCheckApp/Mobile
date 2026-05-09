@@ -5,7 +5,7 @@ import { router } from 'expo-router';
 import { getMockResponse } from './mocks';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
-const USE_MOCKS = process.env.EXPO_PUBLIC_USE_MOCKS === 'true';
+export const USE_MOCKS = process.env.EXPO_PUBLIC_USE_MOCKS === 'true';
 
 const AUTH_TOKEN_KEY = 'auth_token';
 
