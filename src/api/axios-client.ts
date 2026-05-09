@@ -6,6 +6,30 @@ const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
 
 const AUTH_TOKEN_KEY = 'auth_token';
 
+// Sensitive fields to redact from logs
+const SENSITIVE_FIELDS = ['password', 'token', 'authorization', 'secret', 'apiKey', 'api_key'];
+
+function sanitizeForLogging(data: unknown): unknown {
+  if (typeof data !== 'object' || data === null) {
+    return data;
+  }
+
+  if (Array.isArray(data)) {
+    return data.map(sanitizeForLogging);
+  }
+
+  const sanitized: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
+    const lowerKey = key.toLowerCase();
+    if (SENSITIVE_FIELDS.some(field => lowerKey.includes(field))) {
+      sanitized[key] = '[REDACTED]';
+    } else {
+      sanitized[key] = sanitizeForLogging(value);
+    }
+  }
+  return sanitized;
+}
+
 async function getAuthToken(): Promise<string | null> {
   try {
     return await SecureStore.getItemAsync(AUTH_TOKEN_KEY);
@@ -30,16 +54,31 @@ axiosClient.interceptors.request.use(
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // Log request with sanitized data
+    console.log('API Request:', {
+      url: config.url,
+      method: config.method,
+      data: sanitizeForLogging(config.data),
+    });
     return config;
   },
   (error: AxiosError) => {
+    console.error('Request error:', sanitizeForLogging(error));
     return Promise.reject(error);
   }
 );
 
 // Response interceptor to normalize errors
 axiosClient.interceptors.response.use(
-  (response: AxiosResponse) => response,
+  (response: AxiosResponse) => {
+    // Log response with sanitized data
+    console.log('API Response:', {
+      url: response.config.url,
+      status: response.status,
+      data: sanitizeForLogging(response.data),
+    });
+    return response;
+  },
   (error: AxiosError) => {
     if (error.response) {
       const responseData = error.response.data as { code?: string; message?: string } | undefined;
@@ -49,6 +88,13 @@ axiosClient.interceptors.response.use(
         statusCode: error.response.status,
         details: error.response.data,
       };
+      
+      // Log error with sanitized data
+      console.error('API Error:', {
+        url: error.config?.url,
+        status: error.response.status,
+        data: sanitizeForLogging(error.response.data),
+      });
       
       // Redirect to login on 401/403
       if (error.response.status === 401 || error.response.status === 403) {
@@ -68,10 +114,14 @@ axiosClient.interceptors.response.use(
         message: 'Network error occurred',
         details: error,
       };
+      console.error('Network Error:', {
+        url: error.config?.url,
+      });
       return Promise.reject(apiError);
     }
     
     const apiError: ApiError = normalizeApiError(error);
+    console.error('Unknown Error:', sanitizeForLogging(error));
     return Promise.reject(apiError);
   }
 );
