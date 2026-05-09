@@ -1,4 +1,4 @@
-import { apiRequest } from './client';
+import { axiosClient } from './axios-client';
 import type {
   RegisterConsumerInput,
   RegisterConfirmInput,
@@ -6,33 +6,63 @@ import type {
   ClaimCompanyInput,
   OpenCaseInput,
 } from './types';
-import { mockApi } from '@/mocks/api';
 
 export const mobileApi = {
-  registerConsumer: (input: RegisterConsumerInput) =>
-    apiRequest('/auth/consumer/register', { method: 'POST', body: JSON.stringify(input) }, () => mockApi.registerConsumer(input)),
+  auth: {
+    registerConsumer: (input: RegisterConsumerInput) =>
+      axiosClient.post('/auth/consumer/register', input),
 
-  confirmConsumer: (input: RegisterConfirmInput) =>
-    apiRequest('/auth/consumer/register/confirm', { method: 'POST', body: JSON.stringify(input) }, () => mockApi.confirmConsumer(input)),
+    confirmConsumer: (input: RegisterConfirmInput) =>
+      axiosClient.post('/auth/consumer/register/confirm', input),
 
-  registerCompany: (input: RegisterCompanyInput) =>
-    apiRequest('/auth/company/register', { method: 'POST', body: JSON.stringify(input) }, () => mockApi.registerCompany(input)),
+    registerCompany: (input: RegisterCompanyInput) =>
+      axiosClient.post('/auth/company/register', input),
 
-  claimCompany: (input: ClaimCompanyInput) =>
-    apiRequest('/auth/company/claim', { method: 'POST', body: JSON.stringify(input) }, () => mockApi.claimCompany(input)),
+    confirmCompany: (input: RegisterConfirmInput) =>
+      axiosClient.post('/auth/company/register/confirm', input),
 
-  openCase: (input: OpenCaseInput) =>
-    apiRequest('/cases', { method: 'POST', body: JSON.stringify(input) }, () => mockApi.openCase(input)),
+    claimCompany: (input: ClaimCompanyInput) =>
+      axiosClient.post('/auth/company/claim', input),
 
-  listCompanies: () =>
-    apiRequest('/companies', { method: 'GET' }, () => mockApi.listCompanies()),
+    getCompanyClaimStatus: (claimId: string) =>
+      axiosClient.get(`/auth/company/claim/${claimId}/status`),
 
-  getCompany: (id: string) =>
-    apiRequest(`/companies/${id}`, { method: 'GET' }, () => mockApi.getCompany(id)),
+    googleSsoLogin: (input: { idToken: string }) =>
+      axiosClient.post('/auth/sso/google', input),
 
-  getActiveTerm: () =>
-    apiRequest('/legal-terms/active?kind=termos_uso', { method: 'GET' }, () => mockApi.getActiveTerm()),
+    appleSsoLogin: (input: { idToken: string }) =>
+      axiosClient.post('/auth/sso/apple', input),
+  },
 
-  getSignedUpload: (payload: { caseId: string; evidenceType: string; fileName: string; contentType: string; contentLength: number }) =>
-    apiRequest('/integrations/media/signed-upload', { method: 'POST', body: JSON.stringify(payload) }, () => mockApi.getSignedUpload(payload)),
+  cases: {
+    create: (input: OpenCaseInput) =>
+      axiosClient.post('/cases', input),
+
+    get: (id: string) =>
+      axiosClient.get(`/cases/${id}`),
+
+    getAudit: (id: string) =>
+      axiosClient.get(`/cases/${id}/audit`),
+
+    startModeration: (id: string) =>
+      axiosClient.post(`/cases/${id}/moderation/start`),
+
+    approve: (id: string, input: { justification: string }) =>
+      axiosClient.post(`/cases/${id}/moderation/approve`, input),
+
+    reject: (id: string, input: { justification: string }) =>
+      axiosClient.post(`/cases/${id}/moderation/reject`, input),
+
+    notifyCompany: (id: string) =>
+      axiosClient.post(`/cases/${id}/notify-company`),
+
+    companyRespond: (id: string, input: { response: string }) =>
+      axiosClient.post(`/cases/${id}/company/respond`, input),
+
+    resolve: (id: string) =>
+      axiosClient.post(`/cases/${id}/resolve`),
+
+    closeUnresolved: (id: string) =>
+      axiosClient.post(`/cases/${id}/close-unresolved`),
+  },
 };
