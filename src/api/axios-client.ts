@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
 import * as SecureStore from 'expo-secure-store';
+import { normalizeApiError, ApiError } from './errors';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
 
@@ -33,5 +34,34 @@ axiosClient.interceptors.request.use(
   },
   (error: AxiosError) => {
     return Promise.reject(error);
+  }
+);
+
+// Response interceptor to normalize errors
+axiosClient.interceptors.response.use(
+  (response: AxiosResponse) => response,
+  (error: AxiosError) => {
+    if (error.response) {
+      const responseData = error.response.data as { code?: string; message?: string } | undefined;
+      const apiError: ApiError = {
+        code: responseData?.code || `HTTP_${error.response.status}`,
+        message: responseData?.message || error.message,
+        statusCode: error.response.status,
+        details: error.response.data,
+      };
+      return Promise.reject(apiError);
+    }
+    
+    if (error.request) {
+      const apiError: ApiError = {
+        code: 'NETWORK_ERROR',
+        message: 'Network error occurred',
+        details: error,
+      };
+      return Promise.reject(apiError);
+    }
+    
+    const apiError: ApiError = normalizeApiError(error);
+    return Promise.reject(apiError);
   }
 );
