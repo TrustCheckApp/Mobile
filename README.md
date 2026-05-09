@@ -10,6 +10,10 @@ Aplicativo mobile (React Native + Expo) para os fluxos de consumidor e empresa n
 - `npm install`
 - `npm run start`
 
+## Variáveis de Ambiente
+- `EXPO_PUBLIC_API_URL`: URL base da API (padrão: `http://localhost:3000`)
+- `EXPO_PUBLIC_USE_MOCKS`: Flag para habilitar mocks locais durante desenvolvimento (opcional)
+
 ## QA rapido
 - `npm run test:e2e:auth`
 
