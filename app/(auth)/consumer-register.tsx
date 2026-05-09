@@ -10,31 +10,20 @@ export default function ConsumerRegisterScreen() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [otp, setOtp] = useState('');
-  const [registrationToken, setRegistrationToken] = useState('');
   const [state, setState] = useState<'idle' | 'loading' | 'error' | 'success'>('idle');
   const [message, setMessage] = useState('');
 
   async function handleRegister() {
     try {
       setState('loading');
-      const result = await mobileApi.registerConsumer({ email, password, fullName, lgpdAccepted: true, lgpdVersion: '1.0.0' });
-      setRegistrationToken(result.registrationToken);
+      const result = await mobileApi.auth.registerConsumer({ email, password, fullName, lgpdAccepted: true, lgpdVersion: '1.0.0' });
       setState('success');
       setMessage('Cadastro iniciado. Informe o OTP.');
-    } catch (error) {
-      setState('error');
-      setMessage(String(error));
-    }
-  }
-
-  async function handleConfirm() {
-    try {
-      setState('loading');
-      await mobileApi.confirmConsumer({ registrationToken, otp });
-      setState('success');
-      setMessage('Conta autenticada com sucesso.');
-      router.push('/(consumer)/home');
+      // Navigate to OTP verify screen
+      router.push({
+        pathname: '/(auth)/otp-verify',
+        params: { email, registrationToken: result.data.registrationToken },
+      });
     } catch (error) {
       setState('error');
       setMessage(String(error));
@@ -48,9 +37,6 @@ export default function ConsumerRegisterScreen() {
       <TextInput placeholder="Email" value={email} onChangeText={setEmail} autoCapitalize="none" style={{ backgroundColor: '#fff', padding: 12, borderRadius: 8 }} />
       <TextInput placeholder="Senha" value={password} onChangeText={setPassword} secureTextEntry style={{ backgroundColor: '#fff', padding: 12, borderRadius: 8 }} />
       <TouchableOpacity onPress={handleRegister} style={{ backgroundColor: tokens.colors.primary, padding: 12, borderRadius: 8 }}><Text style={{ color: '#fff', textAlign: 'center' }}>Cadastrar</Text></TouchableOpacity>
-
-      <TextInput placeholder="OTP (6 dígitos)" value={otp} onChangeText={setOtp} style={{ backgroundColor: '#fff', padding: 12, borderRadius: 8 }} />
-      <TouchableOpacity onPress={handleConfirm} style={{ backgroundColor: '#1f7a45', padding: 12, borderRadius: 8 }}><Text style={{ color: '#fff', textAlign: 'center' }}>Confirmar OTP</Text></TouchableOpacity>
 
       {state !== 'idle' ? <FeedbackState kind={state === 'loading' ? 'loading' : state === 'error' ? 'error' : 'success'} message={message} /> : null}
     </View>
