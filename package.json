@@ -10,15 +10,22 @@
     "web": "expo start --web",
     "lint": "node -e \"console.log('lint placeholder mobile')\"",
     "build": "node -e \"console.log('build placeholder mobile')\"",
+    "test": "jest",
+    "test:watch": "jest --watch",
     "test:e2e:auth": "node ./e2e-auth/run-auth-e2e.js"
   },
   "dependencies": {
     "expo": "~51.0.28",
     "expo-router": "~3.5.23",
+    "expo-secure-store": "~13.0.2",
     "react": "18.2.0",
     "react-native": "0.74.5"
   },
   "devDependencies": {
-    "typescript": "^5.6.3"
+    "@types/jest": "^29.5.14",
+    "@types/react": "^18.2.79",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "typescript": "~5.3.3"
   }
 }
