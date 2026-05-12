@@ -21,27 +21,37 @@ export default function WizardStep3() {
     const n = Number(sizeBytes);
     if (!fileName.trim() || !Number.isFinite(n) || n < 1) {
       setKind('error');
-      setMessage('Informe nome do ficheiro e tamanho válido em bytes.');
+      setMessage('Informe nome do arquivo e tamanho valido em bytes.');
       return;
     }
-    setEvidenceDrafts([{ fileName: fileName.trim(), mimeType: mimeType.trim() || 'application/octet-stream', sizeBytes: n, description: note.trim() || undefined }]);
+    setEvidenceDrafts([
+      {
+        fileName: fileName.trim(),
+        mimeType: mimeType.trim() || 'application/octet-stream',
+        sizeBytes: n,
+        description: note.trim() || undefined,
+      },
+    ]);
     setKind('success');
-    setMessage('Metadados guardados. O envio ao armazenamento ocorre após criar o caso (POST /cases/:id/evidences).');
+    setMessage(
+      'Metadados guardados. O envio usa POST /cases/:id/evidences/upload-url e confirmacao em POST /cases/:id/evidences.',
+    );
     router.push({ pathname: '/(consumer)/wizard-step4', params: { companyId, description } });
   }
 
   return (
     <View style={{ flex: 1, padding: tokens.spacing.lg, gap: tokens.spacing.sm, backgroundColor: tokens.colors.bg }}>
-      <Text style={{ fontSize: 22, fontWeight: '800' }}>Wizard • Etapa 3 (Evidências)</Text>
+      <Text style={{ fontSize: 22, fontWeight: '800' }}>Wizard - Etapa 3 (Evidencias)</Text>
       <Text style={{ color: tokens.colors.muted }}>
-        Após criar o caso na etapa seguinte, a API regista metadados em `POST /cases/{"{caseId}"}/evidences` (upload assinado ainda pendente no backend).
+        Apos criar o caso, a API solicita URL assinada em POST /cases/{'{caseId}'}/evidences/upload-url e confirma
+        metadata em POST /cases/{'{caseId}'}/evidences.
       </Text>
-      <TextInput placeholder="Nome do ficheiro" value={fileName} onChangeText={setFileName} style={{ backgroundColor: '#fff', padding: 12, borderRadius: 8 }} />
+      <TextInput placeholder="Nome do arquivo" value={fileName} onChangeText={setFileName} style={{ backgroundColor: '#fff', padding: 12, borderRadius: 8 }} />
       <TextInput placeholder="MIME (ex: image/jpeg)" value={mimeType} onChangeText={setMimeType} style={{ backgroundColor: '#fff', padding: 12, borderRadius: 8 }} />
       <TextInput placeholder="Tamanho (bytes)" value={sizeBytes} onChangeText={setSizeBytes} keyboardType="numeric" style={{ backgroundColor: '#fff', padding: 12, borderRadius: 8 }} />
       <TextInput placeholder="Nota opcional" value={note} onChangeText={setNote} style={{ backgroundColor: '#fff', padding: 12, borderRadius: 8 }} />
       <TouchableOpacity onPress={next} style={{ backgroundColor: tokens.colors.primary, padding: 12, borderRadius: 8 }}>
-        <Text style={{ color: '#fff', textAlign: 'center' }}>Guardar e avançar</Text>
+        <Text style={{ color: '#fff', textAlign: 'center' }}>Guardar e avancar</Text>
       </TouchableOpacity>
       {kind !== 'idle' ? <FeedbackState kind={kind === 'loading' ? 'loading' : kind === 'error' ? 'error' : 'success'} message={message} /> : null}
     </View>

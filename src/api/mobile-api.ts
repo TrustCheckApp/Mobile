@@ -113,9 +113,23 @@ export async function registerCaseEvidence(
   payload: { fileName: string; mimeType: string; sizeBytes: number; checksumSha256?: string; description?: string },
 ) {
   if (useMockApi) return mock.registerCaseEvidence(caseId, payload);
+  const upload = await apiFetch<{ uploadUrl: string; uploadToken: string; evidenceId: string }>(
+    `/cases/${caseId}/evidences/upload-url`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        fileName: payload.fileName,
+        mimeType: payload.mimeType,
+        sizeBytes: payload.sizeBytes,
+      }),
+    },
+  );
+
+  // MVP: o app ainda não envia binário local neste fluxo, mas já fecha o contrato
+  // de confirmação de metadata usando uploadToken.
   return apiFetch<ReturnType<typeof mock.registerCaseEvidence>>(`/cases/${caseId}/evidences`, {
     method: 'POST',
-    body: JSON.stringify(payload),
+    body: JSON.stringify({ ...payload, uploadToken: upload.uploadToken }),
   });
 }
 
