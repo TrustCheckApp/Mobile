@@ -89,9 +89,11 @@ Para usar a API real, o backend deve estar em execução, por exemplo em `http:/
 | Home / Explorar | `/(consumer)/home` | Catálogo inicial de empresas e CTAs |
 | Meus Casos | `/(consumer)/meus-casos` | [`docs/paginas-consumidor-casos.md`](./docs/paginas-consumidor-casos.md) |
 | Detalhe do Caso | `/(consumer)/casos/[id]` | [`docs/paginas-consumidor-casos.md`](./docs/paginas-consumidor-casos.md) |
-| Nova Denúncia | `/(consumer)/wizard-step1` até `wizard-step4` | Wizard de criação em 4 etapas |
+| Nova Denúncia | `/(consumer)/wizard-step1` até `wizard-step4` | [`docs/paginas-consumidor-wizard-denuncia.md`](./docs/paginas-consumidor-wizard-denuncia.md) |
 
 As páginas de casos usam helpers em `src/cases/case-ui.ts` para padronizar labels de status, filtros, datas, mensagens de vazio e ações disponíveis por status.
+
+O wizard de nova denúncia usa helpers em `src/wizard/report-wizard.ts` para centralizar validações, normalização de parâmetros, metadados de evidência, aceite legal e montagem do payload de abertura de caso.
 
 ## Qualidade e validação
 
