@@ -92,9 +92,17 @@ Para usar a API real, o backend deve estar em execução, por exemplo em `http:/
 | Detalhe do Caso | `/(consumer)/casos/[id]` | [`docs/paginas-consumidor-casos.md`](./docs/paginas-consumidor-casos.md) |
 | Nova Denúncia | `/(consumer)/wizard-step1` até `wizard-step4` | [`docs/paginas-consumidor-wizard-denuncia.md`](./docs/paginas-consumidor-wizard-denuncia.md) |
 
+## Páginas principais da empresa
+
+| Tela | Rota | Documentação |
+|---|---|---|
+| Dashboard / Fila de Casos | `/(company)/dashboard` | [`docs/paginas-empresa-casos.md`](./docs/paginas-empresa-casos.md) |
+
 As páginas de descoberta usam helpers em `src/companies/company-ui.ts` para padronizar score, selo, mensagens e rota de denúncia com empresa pré-selecionada.
 
-As páginas de casos usam helpers em `src/cases/case-ui.ts` para padronizar labels de status, filtros, datas, mensagens de vazio e ações disponíveis por status.
+As páginas de casos do consumidor usam helpers em `src/cases/case-ui.ts` para padronizar labels de status, filtros, datas, mensagens de vazio e ações disponíveis por status.
+
+A fila de casos da empresa usa helpers em `src/company-cases/company-cases-ui.ts` para centralizar status, filtros, contadores, mensagens, datas e CTAs operacionais.
 
 O wizard de nova denúncia usa helpers em `src/wizard/report-wizard.ts` para centralizar validações, normalização de parâmetros, metadados de evidência, aceite legal e montagem do payload de abertura de caso.
 

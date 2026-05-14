@@ -1,80 +1,129 @@
 import { useCallback, useState } from 'react';
 import { FlatList, Text, TouchableOpacity, View } from 'react-native';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import { tokens } from '@/theme/tokens';
 import { FeedbackState } from '@/components/FeedbackState';
 import { mobileApi } from '@/api/mobile-api';
 import { userFacingMessage } from '@/api/error-map';
+import {
+  countCompanyCasesByStatus,
+  filterCompanyCasesByStatus,
+  formatCompanyCaseStatus,
+  formatCompanyCaseUpdatedAt,
+  getCompanyCasePrimaryActionLabel,
+  getCompanyCaseStatusFilters,
+  getCompanyCasesEmptyMessage,
+  getCompanyCasesErrorMessage,
+  type CompanyCaseListRow,
+} from '@/company-cases/company-cases-ui';
 
-type Row = { id: string; publicId: string; status: string; consumer: string };
+type Row = CompanyCaseListRow;
 
 export default function CompanyDashboardScreen() {
-  const router = useRouter();
-  const [trust, setTrust] = useState<number | null>(null);
-  const [filter, setFilter] = useState<string>('TODOS');
+  const [filter, setFilter] = useState('TODOS');
   const [rows, setRows] = useState<Row[]>([]);
   const [state, setState] = useState<'loading' | 'error' | 'empty' | 'success'>('loading');
-  const [msg, setMsg] = useState('');
+  const [message, setMessage] = useState('');
 
   useFocusEffect(
     useCallback(() => {
-      let a = true;
+      let active = true;
       setState('loading');
+
       mobileApi
         .listCompanyCases()
         .then((list) => {
-          if (!a) return;
-          const mapped: Row[] = list.map((c) => ({
-            id: c.id,
-            publicId: c.publicId ?? c.id,
-            status: c.status,
-            consumer: '—',
+          if (!active) return;
+          const mapped: Row[] = list.map((item) => ({
+            id: item.id,
+            publicId: item.publicId ?? item.id,
+            status: item.status,
+            consumer: item.consumer ?? 'Consumidor',
+            companyName: item.companyName,
+            updatedAt: item.updatedAt,
           }));
           setRows(mapped);
-          setTrust(null);
           setState(mapped.length ? 'success' : 'empty');
         })
-        .catch((e) => {
-          if (!a) return;
+        .catch((error) => {
+          if (!active) return;
           setState('error');
-          setMsg(userFacingMessage(e, 'Erro ao carregar fila.'));
+          setMessage(userFacingMessage(error, getCompanyCasesErrorMessage()));
         });
+
       return () => {
-        a = false;
+        active = false;
       };
     }, []),
   );
 
-  const filtered = filter === 'TODOS' ? rows : rows.filter((r: Row) => r.status === filter);
+  const counters = countCompanyCasesByStatus(rows);
+  const filters = getCompanyCaseStatusFilters();
+  const filteredRows = filterCompanyCasesByStatus(rows, filter);
+  const showFilteredEmpty = state === 'success' && filteredRows.length === 0;
 
   return (
     <View style={{ flex: 1, backgroundColor: tokens.colors.bg, padding: tokens.spacing.lg, gap: tokens.spacing.sm }}>
-      <Text style={{ fontSize: 24, fontWeight: '800' }}>Dashboard empresa</Text>
-      <FeedbackState
-        kind="empty"
-        message="Trust Score real por empresa: pendência de endpoint no contrato Sprint 1 — valor não exibido."
-      />
-      {trust === null ? <Text style={{ color: tokens.colors.muted }}>Trust Score: indisponível</Text> : <Text>Trust Score: {trust}</Text>}
+      <Text style={{ fontSize: 24, fontWeight: '800' }}>Fila da empresa</Text>
+      <Text style={{ color: tokens.colors.muted }}>
+        Acompanhe casos recebidos, priorize respostas e identifique negociações em andamento.
+      </Text>
+
+      <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+        <View style={{ backgroundColor: '#fff', padding: 10, borderRadius: 10, minWidth: 96 }}>
+          <Text style={{ fontWeight: '800', fontSize: 20 }}>{counters.total}</Text>
+          <Text style={{ color: tokens.colors.muted, fontSize: 12 }}>Total</Text>
+        </View>
+        <View style={{ backgroundColor: '#fff', padding: 10, borderRadius: 10, minWidth: 132 }}>
+          <Text style={{ fontWeight: '800', fontSize: 20 }}>{counters.aguardandoResposta}</Text>
+          <Text style={{ color: tokens.colors.muted, fontSize: 12 }}>Aguardando resposta</Text>
+        </View>
+        <View style={{ backgroundColor: '#fff', padding: 10, borderRadius: 10, minWidth: 116 }}>
+          <Text style={{ fontWeight: '800', fontSize: 20 }}>{counters.emNegociacao}</Text>
+          <Text style={{ color: tokens.colors.muted, fontSize: 12 }}>Em negociação</Text>
+        </View>
+      </View>
+
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-        {['TODOS', 'PUBLICADO', 'AGUARDANDO_RESPOSTA_EMPRESA', 'EM_NEGOCIACAO'].map((s) => (
-          <TouchableOpacity key={s} onPress={() => setFilter(s)} style={{ paddingHorizontal: 10, paddingVertical: 6, borderRadius: 16, backgroundColor: filter === s ? tokens.colors.primary : '#e0e4ec' }}>
-            <Text style={{ color: filter === s ? '#fff' : tokens.colors.text, fontSize: 12 }}>{s}</Text>
+        {filters.map((option) => (
+          <TouchableOpacity
+            key={option.value}
+            onPress={() => setFilter(option.value)}
+            style={{
+              paddingHorizontal: 10,
+              paddingVertical: 6,
+              borderRadius: 16,
+              backgroundColor: filter === option.value ? tokens.colors.primary : '#e0e4ec',
+            }}
+          >
+            <Text style={{ color: filter === option.value ? '#fff' : tokens.colors.text, fontSize: 12 }}>{option.label}</Text>
           </TouchableOpacity>
         ))}
       </View>
-      {state === 'loading' && <FeedbackState kind="loading" message="A carregar…" />}
-      {state === 'error' && <FeedbackState kind="error" message={msg} />}
-      {state === 'empty' && <FeedbackState kind="empty" message="Sem casos na fila (dados de demonstração)." />}
+
+      {state === 'loading' && <FeedbackState kind="loading" message="Carregando fila de casos..." />}
+      {state === 'error' && <FeedbackState kind="error" message={message} />}
+      {state === 'empty' && <FeedbackState kind="empty" message={getCompanyCasesEmptyMessage('TODOS')} />}
+      {showFilteredEmpty && <FeedbackState kind="empty" message={getCompanyCasesEmptyMessage(filter)} />}
+
       <FlatList
-        data={filtered}
+        data={state === 'success' ? filteredRows : []}
         keyExtractor={(item: Row) => item.id}
         renderItem={({ item }: { item: Row }) => (
-          <TouchableOpacity style={{ backgroundColor: '#fff', padding: 12, borderRadius: 8, marginBottom: 8 }} onPress={() => router.push(`/(consumer)/casos/${item.id}`)}>
-            <Text style={{ fontWeight: '700' }}>{item.publicId}</Text>
-            <Text style={{ color: tokens.colors.muted }}>{item.status}</Text>
-          </TouchableOpacity>
+          <View style={{ backgroundColor: '#fff', padding: 12, borderRadius: 10, marginBottom: 8, gap: 4 }}>
+            <Text style={{ fontWeight: '800' }}>{item.publicId ?? item.id}</Text>
+            <Text style={{ color: tokens.colors.muted }}>Status: {formatCompanyCaseStatus(item.status)}</Text>
+            <Text style={{ color: tokens.colors.muted }}>Atualizado: {formatCompanyCaseUpdatedAt(item.updatedAt)}</Text>
+            <TouchableOpacity disabled style={{ backgroundColor: '#e0e4ec', padding: 10, borderRadius: 8, marginTop: 4 }}>
+              <Text style={{ textAlign: 'center', fontWeight: '700' }}>{getCompanyCasePrimaryActionLabel(item.status)}</Text>
+            </TouchableOpacity>
+          </View>
         )}
       />
+
+      <Text style={{ color: tokens.colors.muted, fontSize: 12 }}>
+        O detalhe do caso da empresa será habilitado na próxima etapa da jornada.
+      </Text>
     </View>
   );
 }
