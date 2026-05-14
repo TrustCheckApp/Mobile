@@ -1,18 +1,26 @@
 # TrustCheck — Mobile (Expo)
 
-## Como rodar
+Aplicativo mobile do TrustCheck para jornadas de consumidor e empresa, construído com Expo, Expo Router, React Native e TypeScript.
 
-### Primeira vez (dependências)
+## Requisitos
+
+- Node.js compatível com Expo SDK 51.
+- npm.
+- Expo CLI via scripts do projeto.
+- Android Studio/SDK para execução em Android, quando aplicável.
+
+## Instalação
 
 ```powershell
 cd C:\projetos\TrustCheckApp\Mobile
-npm install
+npm ci
 ```
 
-### Subir o bundler
+> Use `npm ci` para instalação reprodutível a partir do `package-lock.json`.
+
+## Execução local
 
 ```powershell
-cd C:\projetos\TrustCheckApp\Mobile
 npm start
 ```
 
@@ -22,7 +30,7 @@ Equivalente:
 npx expo start
 ```
 
-### Atalhos
+## Atalhos
 
 ```powershell
 npm run android
@@ -30,9 +38,9 @@ npm run ios
 npm run web
 ```
 
-### Android no Windows (`adb`, SDK, ANDROID_HOME)
+## Android no Windows (`adb`, SDK, `ANDROID_HOME`)
 
-Se `npm run android` falhar com **SDK não encontrado** ou **`adb` não reconhecido**, segue o guia passo a passo:
+Se `npm run android` falhar com **SDK não encontrado** ou **`adb` não reconhecido**, siga o guia passo a passo:
 
 **[`ANDROID-WINDOWS.md`](./ANDROID-WINDOWS.md)**
 
@@ -44,45 +52,70 @@ $env:Path = "$env:ANDROID_HOME\platform-tools;$env:Path"
 adb version
 ```
 
-O TypeScript do projeto está em **`~5.3.3`** (compatível com Expo SDK 51).
-
----
+O TypeScript do projeto está em **`~5.3.3`**, compatível com Expo SDK 51.
 
 ## Variáveis de ambiente (API)
 
-No mesmo terminal **antes** de `npm start` (PowerShell):
+No mesmo terminal, antes de `npm start`:
 
 ```powershell
 $env:EXPO_PUBLIC_API_URL = "http://localhost:3000"
 $env:EXPO_PUBLIC_USE_MOCK_API = "false"
 ```
 
-Apenas mocks (sem chamar a rede):
+Apenas mocks, sem chamar a rede:
 
 ```powershell
 $env:EXPO_PUBLIC_USE_MOCK_API = "true"
 npm start
 ```
 
-**Android (emulador):** o `localhost` do PC costuma ser `10.0.2.2` visto do emulador. Exemplo:
+**Android (emulador):** o `localhost` do PC costuma ser `10.0.2.2` visto pelo emulador. Exemplo:
 
 ```powershell
 $env:EXPO_PUBLIC_API_URL = "http://10.0.2.2:3000"
 ```
 
-**Dispositivo físico na mesma rede:** use o IP da máquina na LAN (ex.: `http://192.168.1.x:3000`).
-
----
+**Dispositivo físico na mesma rede:** use o IP da máquina na LAN, por exemplo `http://192.168.1.x:3000`.
 
 ## API em paralelo
 
-Para usar a API real, o backend deve estar a correr (por exemplo em `http://localhost:3000`). Ver **`COMANDOS-DEV.md`** na raiz do monorepo.
+Para usar a API real, o backend deve estar em execução, por exemplo em `http://localhost:3000`. Consulte a documentação do repositório `Api` para comandos de execução local.
 
----
+## Qualidade e validação
 
-## Testes unitários
+Execute antes de abrir PR:
 
 ```powershell
-cd C:\projetos\TrustCheckApp\Mobile
+npm test
+npm run lint
+npm run build
+```
+
+### Testes
+
+```powershell
 npm test
 ```
+
+### Lint/type-check
+
+```powershell
+npm run lint
+```
+
+O script executa `tsc --noEmit -p tsconfig.json` para validar TypeScript sem gerar artefatos.
+
+### Build/export
+
+```powershell
+npm run build
+```
+
+O script executa `expo export --platform web --output-dir dist` para validar empacotamento web do app Expo.
+
+## Higiene de repositório
+
+- `node_modules/` não deve ser versionado.
+- Dependências devem ser instaladas localmente com `npm ci`.
+- Artefatos como `dist/`, `coverage/`, `.expo/` e arquivos `.env` locais devem permanecer fora do Git.
