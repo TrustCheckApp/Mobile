@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { FeedbackState } from '@/components/FeedbackState';
 import { tokens } from '@/theme/tokens';
 import { validateCompanyStep } from '@/wizard/report-wizard';
+import { normalizeCompanyIdParam } from '@/companies/company-ui';
 
 export default function WizardStep1() {
   const router = useRouter();
-  const [companyId, setCompanyId] = useState('');
+  const params = useLocalSearchParams<{ companyId?: string }>();
+  const initialCompanyId = normalizeCompanyIdParam(params.companyId);
+  const [companyId, setCompanyId] = useState(initialCompanyId);
   const [error, setError] = useState('');
 
   function next() {
@@ -25,6 +28,9 @@ export default function WizardStep1() {
     <View style={{ flex: 1, padding: tokens.spacing.lg, gap: tokens.spacing.sm, backgroundColor: tokens.colors.bg }}>
       <Text style={{ fontSize: 22, fontWeight: '800' }}>Nova denúncia — etapa 1</Text>
       <Text style={{ color: tokens.colors.muted }}>Informe a empresa relacionada ao caso para iniciar o fluxo.</Text>
+      {initialCompanyId ? (
+        <FeedbackState kind="success" message="Empresa pré-selecionada a partir do perfil público." />
+      ) : null}
       <TextInput
         placeholder="ID da empresa"
         value={companyId}
