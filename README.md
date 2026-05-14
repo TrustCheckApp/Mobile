@@ -86,10 +86,13 @@ Para usar a API real, o backend deve estar em execução, por exemplo em `http:/
 
 | Tela | Rota | Documentação |
 |---|---|---|
-| Home / Explorar | `/(consumer)/home` | Catálogo inicial de empresas e CTAs |
+| Home / Explorar | `/(consumer)/home` | [`docs/paginas-consumidor-empresas.md`](./docs/paginas-consumidor-empresas.md) |
+| Perfil da Empresa | `/(consumer)/empresa/[id]` | [`docs/paginas-consumidor-empresas.md`](./docs/paginas-consumidor-empresas.md) |
 | Meus Casos | `/(consumer)/meus-casos` | [`docs/paginas-consumidor-casos.md`](./docs/paginas-consumidor-casos.md) |
 | Detalhe do Caso | `/(consumer)/casos/[id]` | [`docs/paginas-consumidor-casos.md`](./docs/paginas-consumidor-casos.md) |
 | Nova Denúncia | `/(consumer)/wizard-step1` até `wizard-step4` | [`docs/paginas-consumidor-wizard-denuncia.md`](./docs/paginas-consumidor-wizard-denuncia.md) |
+
+As páginas de descoberta usam helpers em `src/companies/company-ui.ts` para padronizar score, selo, mensagens e rota de denúncia com empresa pré-selecionada.
 
 As páginas de casos usam helpers em `src/cases/case-ui.ts` para padronizar labels de status, filtros, datas, mensagens de vazio e ações disponíveis por status.
 
