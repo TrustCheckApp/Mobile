@@ -5,7 +5,12 @@ import { mobileApi } from '@/api/mobile-api';
 import { userFacingMessage } from '@/api/error-map';
 import { FeedbackState } from '@/components/FeedbackState';
 import { tokens } from '@/theme/tokens';
-import { useMockApi } from '@/config/env';
+import {
+  canConsumerRejectNegotiation,
+  formatCaseStatus,
+  formatCaseUpdatedAt,
+  getCasePrimaryActionLabel,
+} from '@/cases/case-ui';
 
 export default function CaseDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -17,49 +22,54 @@ export default function CaseDetailScreen() {
 
   useEffect(() => {
     let cancelled = false;
-    const cid = Array.isArray(id) ? id[0] : id;
-    if (!cid) {
+    const caseId = Array.isArray(id) ? id[0] : id;
+
+    if (!caseId) {
       setState('error');
-      setMessage('Identificador em falta.');
+      setMessage('Identificador do caso não informado.');
       return;
     }
-    Promise.all([mobileApi.getCase(cid), mobileApi.getCaseAudit(cid).catch(() => null)])
-      .then(([d, a]) => {
+
+    setState('loading');
+    Promise.all([mobileApi.getCase(caseId), mobileApi.getCaseAudit(caseId).catch(() => null)])
+      .then(([caseDetail, caseAudit]) => {
         if (cancelled) return;
-        setDetail(d);
-        setAudit(a);
+        setDetail(caseDetail);
+        setAudit(caseAudit);
         setState('success');
       })
-      .catch((e) => {
+      .catch((error) => {
         if (cancelled) return;
         setState('error');
-        setMessage(userFacingMessage(e, 'Não foi possível carregar o caso.'));
+        setMessage(userFacingMessage(error, 'Não foi possível carregar o caso.'));
       });
+
     return () => {
       cancelled = true;
     };
   }, [id]);
 
   async function rejectNegotiation() {
-    const cid = Array.isArray(id) ? id[0] : id;
-    if (!cid) return;
+    const caseId = Array.isArray(id) ? id[0] : id;
+    if (!caseId) return;
+
     try {
       setState('loading');
-      await mobileApi.closeCaseUnresolved(cid, 'Consumidor recusou proposta de acordo (fluxo simplificado).');
+      await mobileApi.closeCaseUnresolved(caseId, 'Consumidor recusou proposta de acordo.');
+      const updatedDetail = await mobileApi.getCase(caseId);
+      setDetail(updatedDetail);
+      setMessage('Caso encerrado como não resolvido.');
       setState('success');
-      setMessage('Estado atualizado.');
-      const d = await mobileApi.getCase(cid);
-      setDetail(d);
-    } catch (e) {
+    } catch (error) {
       setState('error');
-      setMessage(userFacingMessage(e, 'Ação indisponível.'));
+      setMessage(userFacingMessage(error, 'Ação indisponível no momento.'));
     }
   }
 
   if (!detail && state === 'loading') {
     return (
       <View style={{ flex: 1, padding: tokens.spacing.lg, backgroundColor: tokens.colors.bg }}>
-        <FeedbackState kind="loading" message="A carregar detalhe…" />
+        <FeedbackState kind="loading" message="Carregando detalhe do caso..." />
       </View>
     );
   }
@@ -75,67 +85,76 @@ export default function CaseDetailScreen() {
     );
   }
 
-  const c = detail!.case;
-  const canRejectNegotiation = c.status === 'EM_NEGOCIACAO';
+  const currentCase = detail!.case;
+  const canRejectNegotiation = canConsumerRejectNegotiation(currentCase.status);
 
   return (
     <ScrollView contentContainerStyle={{ padding: tokens.spacing.lg, gap: tokens.spacing.md, backgroundColor: tokens.colors.bg }}>
-      <Text style={{ fontSize: 22, fontWeight: '800' }}>{c.publicId ?? c.id}</Text>
-      <Text>Estado: {c.status}</Text>
-      <Text>Empresa: {c.company.legalName}</Text>
-      <Text>{c.description}</Text>
-      {!useMockApi ? (
-        <FeedbackState
-          kind="empty"
-          message="O GET /cases/:id/audit devolve caso + aceite legal, sem lista cronológica no payload atual — use modo mock para timeline de demonstração."
-        />
-      ) : null}
+      <Text style={{ fontSize: 22, fontWeight: '800' }}>{currentCase.publicId ?? currentCase.id}</Text>
+      <Text>Status: {formatCaseStatus(currentCase.status)}</Text>
+      <Text>Empresa: {currentCase.company.legalName}</Text>
+      <Text>{currentCase.description}</Text>
+
       <Text style={{ fontWeight: '700' }}>Linha do tempo</Text>
       {detail!.timeline.length ? (
         detail!.timeline.map((row: { at: string; label: string }, idx: number) => (
-          <Text key={idx} style={{ color: tokens.colors.muted }}>
-            {new Date(row.at).toLocaleString()} — {row.label}
+          <Text key={`${row.at}-${idx}`} style={{ color: tokens.colors.muted }}>
+            {formatCaseUpdatedAt(row.at)} — {row.label}
           </Text>
         ))
       ) : audit?.termAcceptance ? (
-        <Text style={{ color: tokens.colors.muted }}>Aceite legal registado em {String((audit.termAcceptance as { acceptedAt?: string }).acceptedAt ?? '')}</Text>
+        <Text style={{ color: tokens.colors.muted }}>
+          Aceite legal registrado em {formatCaseUpdatedAt((audit.termAcceptance as { acceptedAt?: string }).acceptedAt)}.
+        </Text>
       ) : (
-        <Text style={{ color: tokens.colors.muted }}>Sem eventos de linha do tempo disponíveis.</Text>
+        <Text style={{ color: tokens.colors.muted }}>Ainda não há eventos de timeline disponíveis para este caso.</Text>
       )}
+
       <Text style={{ fontWeight: '700' }}>Evidências autorizadas</Text>
       {detail!.evidences.length === 0 ? (
-        <Text style={{ color: tokens.colors.muted }}>Sem evidências listadas.</Text>
+        <Text style={{ color: tokens.colors.muted }}>Nenhuma evidência listada.</Text>
       ) : (
-        detail!.evidences.map((ev: { id: string; fileName: string; status: string }) => (
-          <Text key={ev.id} style={{ color: tokens.colors.text }}>
-            {ev.fileName} ({ev.status})
+        detail!.evidences.map((evidence: { id: string; fileName: string; status: string }) => (
+          <Text key={evidence.id} style={{ color: tokens.colors.text }}>
+            {evidence.fileName} ({formatCaseStatus(evidence.status)})
           </Text>
         ))
       )}
+
       <Text style={{ fontWeight: '700' }}>Negociação</Text>
-      {detail!.proposals.map((p: { id: string; title: string; status: string }) => (
-        <View key={p.id} style={{ padding: 8, backgroundColor: '#fff', borderRadius: 8 }}>
-          <Text>{p.title}</Text>
-          <Text style={{ fontSize: 12, color: tokens.colors.muted }}>Estado: {p.status}</Text>
-        </View>
-      ))}
+      {detail!.proposals.length === 0 ? (
+        <Text style={{ color: tokens.colors.muted }}>Nenhuma proposta registrada para este caso.</Text>
+      ) : (
+        detail!.proposals.map((proposal: { id: string; title: string; status: string }) => (
+          <View key={proposal.id} style={{ padding: 8, backgroundColor: '#fff', borderRadius: 8 }}>
+            <Text>{proposal.title}</Text>
+            <Text style={{ fontSize: 12, color: tokens.colors.muted }}>Status: {formatCaseStatus(proposal.status)}</Text>
+          </View>
+        ))
+      )}
+
+      <Text style={{ fontWeight: '700' }}>Ações do consumidor</Text>
+      <Text style={{ color: tokens.colors.muted }}>{getCasePrimaryActionLabel(currentCase.status)}</Text>
       <TouchableOpacity
-        disabled={!canRejectNegotiation}
+        disabled={!canRejectNegotiation || state === 'loading'}
         onPress={rejectNegotiation}
-        style={{ padding: 12, borderRadius: 8, backgroundColor: canRejectNegotiation ? tokens.colors.danger : '#ccc' }}
+        style={{
+          padding: 12,
+          borderRadius: 8,
+          backgroundColor: canRejectNegotiation ? tokens.colors.danger : '#ccc',
+        }}
       >
-        <Text style={{ color: '#fff', textAlign: 'center' }}>Recusar acordo (encerra como não resolvido)</Text>
+        <Text style={{ color: '#fff', textAlign: 'center' }}>Recusar acordo</Text>
       </TouchableOpacity>
       {!canRejectNegotiation ? (
         <Text style={{ fontSize: 12, color: tokens.colors.muted }}>
-          Disponível apenas em EM_NEGOCIACAO, conforme POST /cases/:id/close-unresolved (consumidor).
+          A recusa de acordo fica disponível apenas quando o caso está em negociação.
         </Text>
       ) : null}
-      <TouchableOpacity disabled style={{ padding: 12, borderRadius: 8, backgroundColor: '#e0e4ec' }}>
-        <Text style={{ textAlign: 'center' }}>Aceitar resolução (POST /cases/:id/resolve — requer confirmações; hoje só admin no contrato)</Text>
-      </TouchableOpacity>
+
+      {state === 'loading' && detail ? <FeedbackState kind="loading" message="Atualizando caso..." /> : null}
       {state === 'error' && detail ? <FeedbackState kind="error" message={message} /> : null}
-      {state === 'success' && message && detail ? <FeedbackState kind="success" message={message} /> : null}
+      {state === 'success' && message ? <FeedbackState kind="success" message={message} /> : null}
     </ScrollView>
   );
 }

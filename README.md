@@ -82,6 +82,17 @@ $env:EXPO_PUBLIC_API_URL = "http://10.0.2.2:3000"
 
 Para usar a API real, o backend deve estar em execução, por exemplo em `http://localhost:3000`. Consulte a documentação do repositório `Api` para comandos de execução local.
 
+## Páginas principais do consumidor
+
+| Tela | Rota | Documentação |
+|---|---|---|
+| Home / Explorar | `/(consumer)/home` | Catálogo inicial de empresas e CTAs |
+| Meus Casos | `/(consumer)/meus-casos` | [`docs/paginas-consumidor-casos.md`](./docs/paginas-consumidor-casos.md) |
+| Detalhe do Caso | `/(consumer)/casos/[id]` | [`docs/paginas-consumidor-casos.md`](./docs/paginas-consumidor-casos.md) |
+| Nova Denúncia | `/(consumer)/wizard-step1` até `wizard-step4` | Wizard de criação em 4 etapas |
+
+As páginas de casos usam helpers em `src/cases/case-ui.ts` para padronizar labels de status, filtros, datas, mensagens de vazio e ações disponíveis por status.
+
 ## Qualidade e validação
 
 Execute antes de abrir PR:
