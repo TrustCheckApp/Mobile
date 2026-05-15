@@ -1,145 +1,59 @@
-# TrustCheck — Mobile (Expo)
+﻿# TrustCheck Mobile (Expo)
 
-Aplicativo mobile do TrustCheck para jornadas de consumidor e empresa, construído com Expo, Expo Router, React Native e TypeScript.
+Aplicativo mobile do TrustCheck para jornadas de consumidor e empresa, construido com Expo, Expo Router, React Native e TypeScript.
+
+## Estado atual (atualizado em 2026-05-14)
+- Navegacao principal implementada (auth, home, wizard, casos, dashboard empresa).
+- Integracao com API real em parte dos fluxos.
+- Parte do comportamento ainda usa mocks controlados.
+
+## Situacao tecnica real
+- Fluxos reais: cadastro/login consumidor, abertura de caso, parte de auditoria/evidencias.
+- Fluxos parciais/mockados: catalogo publico de empresas, listagens de casos e login empresa.
+- Tokens armazenados com `expo-secure-store`.
+
+## Gaps para fechamento V1
+1. Substituir mocks criticos por endpoints reais.
+2. Finalizar upload binario de evidencias no app.
+3. Ampliar cobertura de testes e validar build/lint com checks reais.
 
 ## Requisitos
-
-- Node.js compatível com Expo SDK 51.
+- Node.js compativel com Expo SDK 51.
 - npm.
-- Expo CLI via scripts do projeto.
-- Android Studio/SDK para execução em Android, quando aplicável.
+- Android Studio/SDK para execucao Android, quando aplicavel.
 
-## Instalação
-
-```powershell
-cd C:\projetos\TrustCheckApp\Mobile
+## Instalacao e execucao
+```bash
 npm ci
-```
-
-> Use `npm ci` para instalação reprodutível a partir do `package-lock.json`.
-
-## Execução local
-
-```powershell
 npm start
 ```
 
-Equivalente:
-
-```powershell
-npx expo start
-```
-
 ## Atalhos
-
-```powershell
+```bash
 npm run android
 npm run ios
 npm run web
 ```
 
-## Android no Windows (`adb`, SDK, `ANDROID_HOME`)
-
-Se `npm run android` falhar com **SDK não encontrado** ou **`adb` não reconhecido**, siga o guia passo a passo:
-
-**[`ANDROID-WINDOWS.md`](./ANDROID-WINDOWS.md)**
-
-Resumo rápido depois de instalar o Android Studio e o SDK:
-
-```powershell
-$env:ANDROID_HOME = "$env:LOCALAPPDATA\Android\Sdk"
-$env:Path = "$env:ANDROID_HOME\platform-tools;$env:Path"
-adb version
+## Variaveis de ambiente
+```bash
+EXPO_PUBLIC_API_URL=http://localhost:3000
+EXPO_PUBLIC_USE_MOCK_API=false
 ```
 
-O TypeScript do projeto está em **`~5.3.3`**, compatível com Expo SDK 51.
-
-## Variáveis de ambiente (API)
-
-No mesmo terminal, antes de `npm start`:
-
-```powershell
-$env:EXPO_PUBLIC_API_URL = "http://localhost:3000"
-$env:EXPO_PUBLIC_USE_MOCK_API = "false"
+Somente mocks:
+```bash
+EXPO_PUBLIC_USE_MOCK_API=true
 ```
 
-Apenas mocks, sem chamar a rede:
+## Android no Windows
+Se `adb`/SDK nao estiver configurado, seguir: `ANDROID-WINDOWS.md`.
 
-```powershell
-$env:EXPO_PUBLIC_USE_MOCK_API = "true"
-npm start
-```
-
-**Android (emulador):** o `localhost` do PC costuma ser `10.0.2.2` visto pelo emulador. Exemplo:
-
-```powershell
-$env:EXPO_PUBLIC_API_URL = "http://10.0.2.2:3000"
-```
-
-**Dispositivo físico na mesma rede:** use o IP da máquina na LAN, por exemplo `http://192.168.1.x:3000`.
-
-## API em paralelo
-
-Para usar a API real, o backend deve estar em execução, por exemplo em `http://localhost:3000`. Consulte a documentação do repositório `Api` para comandos de execução local.
-
-## Páginas principais do consumidor
-
-| Tela | Rota | Documentação |
-|---|---|---|
-| Home / Explorar | `/(consumer)/home` | [`docs/paginas-consumidor-empresas.md`](./docs/paginas-consumidor-empresas.md) |
-| Perfil da Empresa | `/(consumer)/empresa/[id]` | [`docs/paginas-consumidor-empresas.md`](./docs/paginas-consumidor-empresas.md) |
-| Meus Casos | `/(consumer)/meus-casos` | [`docs/paginas-consumidor-casos.md`](./docs/paginas-consumidor-casos.md) |
-| Detalhe do Caso | `/(consumer)/casos/[id]` | [`docs/paginas-consumidor-casos.md`](./docs/paginas-consumidor-casos.md) |
-| Nova Denúncia | `/(consumer)/wizard-step1` até `wizard-step4` | [`docs/paginas-consumidor-wizard-denuncia.md`](./docs/paginas-consumidor-wizard-denuncia.md) |
-
-## Páginas principais da empresa
-
-| Tela | Rota | Documentação |
-|---|---|---|
-| Dashboard / Fila de Casos | `/(company)/dashboard` | [`docs/paginas-empresa-casos.md`](./docs/paginas-empresa-casos.md) |
-
-As páginas de descoberta usam helpers em `src/companies/company-ui.ts` para padronizar score, selo, mensagens e rota de denúncia com empresa pré-selecionada.
-
-As páginas de casos do consumidor usam helpers em `src/cases/case-ui.ts` para padronizar labels de status, filtros, datas, mensagens de vazio e ações disponíveis por status.
-
-A fila de casos da empresa usa helpers em `src/company-cases/company-cases-ui.ts` para centralizar status, filtros, contadores, mensagens, datas e CTAs operacionais.
-
-O wizard de nova denúncia usa helpers em `src/wizard/report-wizard.ts` para centralizar validações, normalização de parâmetros, metadados de evidência, aceite legal e montagem do payload de abertura de caso.
-
-## Qualidade e validação
-
-Execute antes de abrir PR:
-
-```powershell
-npm test
-npm run lint
-npm run build
-```
-
-### Testes
-
-```powershell
+## Testes
+```bash
 npm test
 ```
 
-### Lint/type-check
-
-```powershell
-npm run lint
-```
-
-O script executa `tsc --noEmit -p tsconfig.json` para validar TypeScript sem gerar artefatos.
-
-### Build/export
-
-```powershell
-npm run build
-```
-
-O script executa `expo export --platform web --output-dir dist` para validar empacotamento web do app Expo.
-
-## Higiene de repositório
-
-- `node_modules/` não deve ser versionado.
-- Dependências devem ser instaladas localmente com `npm ci`.
-- Artefatos como `dist/`, `coverage/`, `.expo/` e arquivos `.env` locais devem permanecer fora do Git.
+## Fonte de verdade funcional
+- https://github.com/TrustCheckApp/Docs
+- `Docs/docs/02-catalogo-telas.md`
